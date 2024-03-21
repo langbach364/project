@@ -25,21 +25,6 @@ func enable_middleware_cors(next http.Handler) http.Handler {
 	})
 }
 
-func Router_sign_up(router *http.ServeMux) {
-	router.HandleFunc("/SignUp", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		switch r.Method {
-		case "POST":
-			data, err := io.ReadAll(r.Body)
-			check_err(err)
-			check := sign_Up(data)
-			fmt.Fprintln(w, check)
-		case "GET":
-			fmt.Println("Get method is not used")
-		}
-	})
-}
-
 func Router_sign_in(router *http.ServeMux) {
 	router.HandleFunc("/SignIn", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -57,7 +42,6 @@ func Router_sign_in(router *http.ServeMux) {
 }
 
 func muxtiplexer_router(router *http.ServeMux) {
-	Router_sign_up(router)
 	Router_sign_in(router)
 }
 

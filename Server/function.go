@@ -15,16 +15,17 @@ func check_err(err error) {
 }
 
 type List_Account struct {
-	UserName string
+	Name     string
 	Password string
 	FullName string
+	Gender   string
 	Email    string
 	CreateAt string
 	UpdateAt string
 }
 
 func check_login(email string, Password string) bool {
-	db, err := sql.Open("mysql", "root:")
+	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
 	check_err(err)
 	defer db.Close()
 
@@ -47,7 +48,7 @@ func check_login(email string, Password string) bool {
 }
 
 func check_role(id_user int, id_delete int) bool {
-	db, err := sql.Open("mysql", "root")
+	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
 	check_err(err)
 	defer db.Close()
 
@@ -63,12 +64,12 @@ func check_role(id_user int, id_delete int) bool {
 }
 
 func change_infomation(id_user int, info infomation) bool {
-	db, err := sql.Open("mysql", "root")
+	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
 	check_err(err)
 	defer db.Close()
 
-	_, err = db.Exec("UPDATE Users SET Username = ?, Password = ?, FullName = ?, Email = ?, UpdateAt = ? WHERE id = ?",
-		info.UserName, info.Password, info.FullName, info.Email, info.UpdateAt, id_user)
+	_, err = db.Exec("UPDATE Users SET Name = ?, Password = ?, FullName = ?, Gender = ?, Email = ?, UpdateAt = ? WHERE id = ?",
+		info.Name, info.Password, info.FullName, info.Gender, info.Email, info.UpdateAt, id_user)
 	check_err(err)
 	return true
 }
@@ -83,7 +84,7 @@ func update_infomation(id_user int, info infomation) bool {
 }
 
 func delete_account(id_user int, id_delete int) bool {
-	db, err := sql.Open("mysql", "root")
+	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
 	check_err(err)
 	defer db.Close()
 
@@ -95,32 +96,33 @@ func delete_account(id_user int, id_delete int) bool {
 	return false
 }
 
-func list_account(char string, start int, limit int) []List_Account {
-	db, err := sql.Open("mysql", "root")
+func get_account(sum_account int) []List_Account {
+	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
 	check_err(err)
 	defer db.Close()
 
-	var List []List_Account
+	var result []List_Account
 
-	if char != "ALL" {
-		rows, err := db.Query("SELECT UserName, FROM Users WHERE LEFT(UserName, 1) LIKE ? LIMIT ? OFFSET ?", char, limit, start)
+	for i := 0; i < sum_account; i++ {
+		err = db.QueryRow("SELECT name, fullname, gender, email, CreateAt, UpdateAt from Informations").Scan(&result[i])
 		check_err(err)
-		for rows.Next() {
-			var p List_Account
-			rows.Scan(&p.UserName)
-			List = append(List, p)
-		}
-		return List
-
-	} else {
-		rows, err := db.Query("SELECT UserName, FROM Users LIMIT ? OFFSET ?", char, limit, start)
-		check_err(err)
-		for rows.Next() {
-			var p List_Account
-			rows.Scan(&p.UserName)
-			List = append(List, p)
-		}
-		return List
 	}
+	return result
+}
 
+func list_account(char string, start int, limit int) [][]List_Account {
+	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
+	check_err(err)
+	defer db.Close()
+
+	var List_role [][]List_Account
+	var sum_role int
+	err = db.QueryRow("SELECT SUM(roleID) from Role").Scan(&sum_role)
+	var sum_account int
+	err = db.QueryRow("SELECT SUM(id) from Account").Scan(&sum_account)
+
+	for i := 0 ; i < sum_role ; i++ {
+		List_role[i] = get_account(sum_account)
+	}
+	return List_role
 }
