@@ -96,33 +96,24 @@ func delete_account(id_user int, id_delete int) bool {
 	return false
 }
 
-func get_account(sum_account int) []List_Account {
-	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
+func get_account(roleID int, start int, limit int) []List_Account {
+	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manage")
 	check_err(err)
 	defer db.Close()
 
-	var result []List_Account
+	result := make([]List_Account, 0)
+	query1 := "SELECT Informations.name, Informations.fullname, Informations.gender, Informations.email, Informations.CreateAt, Informations.UpdateAt"
+	query2 := " from Informations join Role ON Informations.id = Role.id WHERE Role.roleID = ? LIMIT ? OFFSET ?"
+	rows, err := db.Query(query1 + query2, roleID, limit, start - 1)
+	check_err(err)
+	defer rows.Close()
 
-	for i := 0; i < sum_account; i++ {
-		err = db.QueryRow("SELECT name, fullname, gender, email, CreateAt, UpdateAt from Informations").Scan(&result[i])
+	for rows.Next() {
+		var account List_Account
+		err := rows.Scan(&account.Name, &account.FullName, &account.Gender, &account.Email, &account.CreateAt, &account.UpdateAt)
 		check_err(err)
+		result = append(result, account)
 	}
+
 	return result
-}
-
-func list_account(char string, start int, limit int) [][]List_Account {
-	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
-	check_err(err)
-	defer db.Close()
-
-	var List_role [][]List_Account
-	var sum_role int
-	err = db.QueryRow("SELECT SUM(roleID) from Role").Scan(&sum_role)
-	var sum_account int
-	err = db.QueryRow("SELECT SUM(id) from Account").Scan(&sum_account)
-
-	for i := 0 ; i < sum_role ; i++ {
-		List_role[i] = get_account(sum_account)
-	}
-	return List_role
 }

@@ -25,15 +25,15 @@ func enable_middleware_cors(next http.Handler) http.Handler {
 	})
 }
 
-func Router_sign_in(router *http.ServeMux) {
-	router.HandleFunc("/SignIn", func(w http.ResponseWriter, r *http.Request) {
+func Router_create_account(router *http.ServeMux) {
+	router.HandleFunc("/CreateAccount", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		switch r.Method {
 		case "POST":
 			data, err := io.ReadAll(r.Body)
 			check_err(err)
 
-			check := sign_In(data)
+			check := create_account(data)
 			fmt.Fprintln(w, check)
 		case "GET":
 			fmt.Println("Get method is not used")
@@ -41,8 +41,26 @@ func Router_sign_in(router *http.ServeMux) {
 	})
 }
 
+func Router_get_account(router *http.ServeMux) {
+	router.HandleFunc("/GetAccount", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.Method {
+		case "POST":
+			data, err := io.ReadAll(r.Body)
+			check_err(err)
+
+			list := get_Account(data)
+			fmt.Fprintln(w, list)
+		case "GET":
+			fmt.Println("Get method is not used")
+		}
+	})
+}
+
+
 func muxtiplexer_router(router *http.ServeMux) {
-	Router_sign_in(router)
+	Router_create_account(router)
+	Router_get_account(router)
 }
 
 func Create_server() {
