@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -17,17 +18,22 @@ type quantity struct {
 	RoleID int `json:"roleID"`
 }
 
-type infomation struct {
-	Name string `json:"name"`
-	Password string `json:"Password"`
-	FullName string `json:"Fullname"`
-	Gender 	 string `json:"Gender"`
-	Email    string `json:"Email"`
-	CreateAt string `json:"CreateAt"`
-	UpdateAt string `json:"UpdateAt"`
+type CheckRole struct {
+	ID_USER int `json:"IdUser"`
+	ID_CHECK int `json:"IdCheck"`
 }
 
-func create_account(jsonData []byte) string {
+type infomation struct {
+	Name string `json:"name"`
+	Password string `json:"password"`
+	FullName string `json:"fullname"`
+	Gender 	 string `json:"gender"`
+	Email    string `json:"email"`
+	CreateAt string `json:"createAt"`
+	UpdateAt string `json:"updateAt"`
+}
+
+func login(jsonData []byte) string {
 	var Account account
 	err := json.Unmarshal(jsonData, &Account)
 	check_err(err)
@@ -42,6 +48,28 @@ func create_account(jsonData []byte) string {
 	return string(JsonData)
 }
 
+func create_account(jsonData []byte) string {
+	var Account account
+	err := json.Unmarshal(jsonData, &Account)
+	check_err(err)
+	hashedPassword := encode_data(Account.Email, Account.Password, 2)
+
+	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
+	check_err(err)
+	defer db.Close()
+
+	_, err = db.Exec("INSERT INTO account(username, password) VALUES(?, ?)", Account.Email, hashedPassword)
+	check_err(err)
+	defer db.Close()
+
+	check := true
+	JsonData,err := json.Marshal(check)
+	check_err(err)
+
+
+	return string(JsonData)
+}
+
 func get_Account(jsonData []byte) string {
 	var object quantity
 	err := json.Unmarshal(jsonData, &object)
@@ -49,6 +77,18 @@ func get_Account(jsonData []byte) string {
 
 	list := get_account(object.RoleID, object.Start, object.Limit)
 	JsonData, err := json.Marshal(list)
+	check_err(err)
+
+	return string(JsonData)
+}
+
+func check_Role(jsonData []byte) string {
+	var check CheckRole
+	err := json.Unmarshal(jsonData, &check)
+	check_err(err)
+
+	result := check_role(check.ID_USER, check.ID_CHECK)
+	JsonData, err := json.Marshal(result)
 	check_err(err)
 
 	return string(JsonData)

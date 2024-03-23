@@ -47,8 +47,8 @@ func check_login(email string, Password string) bool {
 	return true
 }
 
-func check_role(id_user int, id_delete int) bool {
-	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
+func check_role(id_user int, id_check int) bool {
+	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manager")
 	check_err(err)
 	defer db.Close()
 
@@ -56,11 +56,11 @@ func check_role(id_user int, id_delete int) bool {
 	err = db.QueryRow("SELECT RoleID from Role WHERE id = ?", id_user).Scan(&role_user)
 	check_err(err)
 
-	var role_delete int
-	err = db.QueryRow("SELECT RoleID from Role WHERE id = ?", id_delete).Scan(&role_delete)
+	var role_check int
+	err = db.QueryRow("SELECT RoleID from Role WHERE id = ?", id_check).Scan(&role_check)
 	check_err(err)
 
-	return role_user < role_delete
+	return role_user < role_check
 }
 
 func change_infomation(id_user int, info infomation) bool {
@@ -104,7 +104,7 @@ func get_account(roleID int, start int, limit int) []List_Account {
 	result := make([]List_Account, 0)
 	query1 := "SELECT Informations.name, Informations.fullname, Informations.gender, Informations.email, Informations.CreateAt, Informations.UpdateAt"
 	query2 := " from Informations join Role ON Informations.id = Role.id WHERE Role.roleID = ? LIMIT ? OFFSET ?"
-	rows, err := db.Query(query1 + query2, roleID, limit, start - 1)
+	rows, err := db.Query(query1+query2, roleID, limit, start-1)
 	check_err(err)
 	defer rows.Close()
 
