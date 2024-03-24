@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -74,6 +76,7 @@ func change_infomation(id_user int, info infomation) bool {
 	return true
 }
 
+
 func update_infomation(id_user int, info infomation) bool {
 	db, err := sql.Open("mysql", "root")
 	check_err(err)
@@ -96,6 +99,7 @@ func delete_account(id_user int, id_delete int) bool {
 	return false
 }
 
+
 func get_account(roleID int, start int, limit int) []List_Account {
 	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manage")
 	check_err(err)
@@ -116,4 +120,13 @@ func get_account(roleID int, start int, limit int) []List_Account {
 	}
 
 	return result
+}
+
+func randomToken() string {
+	bytes := make([]byte, 10) 
+	_, err := rand.Read(bytes)
+	if err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(bytes) 
 }

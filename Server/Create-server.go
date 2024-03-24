@@ -25,6 +25,25 @@ func enable_middleware_cors(next http.Handler) http.Handler {
 	})
 }
 
+func create_cookie(w http.ResponseWriter) {
+	cookie := http.Cookie{
+		Name:     "session_token",
+		Value:    randomToken(),
+		HttpOnly: true,
+	}
+	http.SetCookie(w, &cookie)
+}
+
+func delete_cookie(w http.ResponseWriter) {
+	cookie := http.Cookie{
+		Name:     "session_token",
+		Value:    "",
+		HttpOnly: true,
+		MaxAge:   -1,
+	}
+	http.SetCookie(w, &cookie)
+}
+
 func Router_login(router *http.ServeMux) {
 	router.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -34,7 +53,21 @@ func Router_login(router *http.ServeMux) {
 			check_err(err)
 
 			check := login(data)
+			create_cookie(w)
 			fmt.Fprintln(w, check)
+		case "GET":
+			fmt.Println("Get method is not used")
+		}
+	})
+}
+
+func Router_logout(router *http.ServeMux) {
+	router.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.Method {
+		case "POST":
+			delete_cookie(w)
+			fmt.Fprintln(w, "true")
 		case "GET":
 			fmt.Println("Get method is not used")
 		}
@@ -90,9 +123,11 @@ func Router_check_role(router *http.ServeMux) {
 }
 
 func muxtiplexer_router(router *http.ServeMux) {
+	Router_login(router)
 	Router_create_account(router)
 	Router_get_account(router)
 	Router_check_role(router)
+	Router_logout(router)
 }
 
 func Create_server() {
