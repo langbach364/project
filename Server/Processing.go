@@ -13,21 +13,21 @@ type account struct {
 }
 
 type quantity struct {
-	Start int `json:"start"`
-	Limit int `json:"limit"`
+	Start  int `json:"start"`
+	Limit  int `json:"limit"`
 	RoleID int `json:"roleID"`
 }
 
 type CheckRole struct {
-	ID_USER int `json:"IdUser"`
+	ID_USER  int `json:"IdUser"`
 	ID_CHECK int `json:"IdCheck"`
 }
 
 type infomation struct {
-	Name string `json:"name"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 	FullName string `json:"fullname"`
-	Gender 	 string `json:"gender"`
+	Gender   string `json:"gender"`
 	Email    string `json:"email"`
 	CreateAt string `json:"createAt"`
 	UpdateAt string `json:"updateAt"`
@@ -38,7 +38,7 @@ func login(jsonData []byte) string {
 	err := json.Unmarshal(jsonData, &Account)
 	check_err(err)
 
-	hashPassword := encode_data(Account.Password, Account.Password, 2)
+	hashPassword := encode_data(Account.Email, Account.Password, 2)
 
 	// check account from database
 	check := check_login(Account.Email, hashPassword)
@@ -54,18 +54,26 @@ func create_account(jsonData []byte) string {
 	check_err(err)
 	hashedPassword := encode_data(Account.Email, Account.Password, 2)
 
-	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
+	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manager")
 	check_err(err)
 	defer db.Close()
 
-	_, err = db.Exec("INSERT INTO account(username, password) VALUES(?, ?)", Account.Email, hashedPassword)
+	var id *int
+	err = db.QueryRow("SELECT MAX(id) FROM Account;").Scan(&id)
+	check_err(err)
+
+	newId := 1
+	if id != nil {
+		newId = *id + 1
+	}
+
+	_, err = db.Exec("INSERT INTO Account(id, email, password) VALUES(?, ?, ?)", newId, Account.Email, hashedPassword)
 	check_err(err)
 	defer db.Close()
 
 	check := true
-	JsonData,err := json.Marshal(check)
+	JsonData, err := json.Marshal(check)
 	check_err(err)
-
 
 	return string(JsonData)
 }

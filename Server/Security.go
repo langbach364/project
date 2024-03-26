@@ -126,6 +126,62 @@ func mixing_rules(merge string, SizeHash int) []int {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////////////////
+// Tạo quy tắc chèn và các ký tự
+
+func convert_string_to_int(data string) int {
+	var result int
+	for _, char := range data {
+		result = result*10 + int(char-'0')
+	}
+	return result
+}
+
+func check_rune_1(data int) bool {
+	return data > 32 && data < 127
+}
+
+func check_rune_2(data int) bool {
+	return data < 47 || data > 57
+}
+
+func check_number(data *int) int {
+	if check_rune_1(*data) && check_rune_2(*data) {
+		return *data
+	}
+	for *data < 32 || (*data >= 48 && *data <= 57) {
+		*data = *data + 32
+	  }	  
+	return *data
+}
+
+func convert_int_to_ascii(data int) rune {
+	return rune(data)
+}
+
+func insert_rules(mixing []int, size int) []int {
+	result := make([]int, size)
+	for i := 0; i < size; i++ {
+		result[i] = size - mixing[i]
+	}
+	return result
+}
+
+func insert_strings(mixing []int, HashData []string) []rune {
+	var result []rune
+	insert_rules := insert_rules(mixing, len(HashData))
+
+	for i := 0; i < len(mixing); i++ {
+		pointer := insert_rules[i]
+		number := convert_string_to_int(HashData[pointer])
+		check_number(&number)
+		char := convert_int_to_ascii(number)
+		result = append(result, char)
+	}
+	return result
+}
+
+// /////////////////////////////////////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////////////////////////////////////
 // Băm dữ liệu ra và lấy phần thừa của việc băm rồi ghép lại
 func get_value_excessive(SizeMerge int, current int) int {
@@ -157,8 +213,9 @@ func data_mixing(mixing []int, HashData []string) string {
 		swap(&HashData[i], &HashData[mixing[pointer]])
 		pointer++
 	}
+	chars := insert_strings(mixing, HashData)
 	for i := 0; i < len(HashData); i++ {
-		result += HashData[i]
+		result += HashData[i] + string(chars[i])
 	}
 	return result
 }

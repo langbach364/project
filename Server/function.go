@@ -27,7 +27,7 @@ type List_Account struct {
 }
 
 func check_login(email string, Password string) bool {
-	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
+	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manager")
 	check_err(err)
 	defer db.Close()
 
@@ -66,7 +66,7 @@ func check_role(id_user int, id_check int) bool {
 }
 
 func change_infomation(id_user int, info infomation) bool {
-	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
+	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manager")
 	check_err(err)
 	defer db.Close()
 
@@ -87,7 +87,7 @@ func update_infomation(id_user int, info infomation) bool {
 }
 
 func delete_account(id_user int, id_delete int) bool {
-	db, err := sql.Open("mysql", "user:@ztegc4DF9F4E@tcp(localhost)/Manager")
+	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manager")
 	check_err(err)
 	defer db.Close()
 
