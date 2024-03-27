@@ -151,7 +151,7 @@ func check_number(data *int) int {
 	}
 	for *data < 32 || (*data >= 48 && *data <= 57) {
 		*data = *data + 32
-	  }	  
+	}
 	return *data
 }
 
@@ -163,12 +163,15 @@ func insert_rules(mixing []int, size int) []int {
 	result := make([]int, size)
 	for i := 0; i < size; i++ {
 		result[i] = size - mixing[i]
+		if result[i] >= size {
+			result[i] = size - 1
+		}
 	}
 	return result
 }
 
 func insert_strings(mixing []int, HashData []string) []rune {
-	var result []rune
+	result := make([]rune, 0)
 	insert_rules := insert_rules(mixing, len(HashData))
 
 	for i := 0; i < len(mixing); i++ {
@@ -210,7 +213,8 @@ func data_mixing(mixing []int, HashData []string) string {
 
 	pointer := 0
 	for i := 0; i < len(mixing); i++ {
-		swap(&HashData[i], &HashData[mixing[pointer]])
+		x := mixing[pointer]
+		swap(&HashData[i], &HashData[x])
 		pointer++
 	}
 	chars := insert_strings(mixing, HashData)
@@ -233,6 +237,9 @@ func combine_excessive(merge string, save_excessive int) string {
 // /////////////////////////////////////////////////////////////////////////////////////////
 // Bắt đầu việc mã hóa(tạo nhiều đối tượng cho dễ debug hơn)
 func encode_data(dataGmail string, dataPassword string, size_hash int) string {
+	if size_hash < 2 {
+		size_hash = 2
+	}
 	asscii_gmail := convert_string_to_ascii(dataGmail)
 	asscii_password := convert_string_to_ascii(dataPassword)
 	merge := merge_string(asscii_gmail, asscii_password)

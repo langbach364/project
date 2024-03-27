@@ -69,6 +69,13 @@ func create_account(jsonData []byte) string {
 
 	_, err = db.Exec("INSERT INTO Account(id, email, password) VALUES(?, ?, ?)", newId, Account.Email, hashedPassword)
 	check_err(err)
+
+	var Infomation infomation
+
+	_, err = db.Exec("INSERT INTO Informations(id, name, password, fullname, gender, email, createAt, updateAt) VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+		Infomation.Name, Infomation.Password, Infomation.FullName, Infomation.Gender, Infomation.Email, Infomation.CreateAt, Infomation.UpdateAt)
+
+	check_err(err)
 	defer db.Close()
 
 	check := true
