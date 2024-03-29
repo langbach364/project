@@ -82,7 +82,7 @@ func Router_create_account(router *http.ServeMux) {
 			data, err := io.ReadAll(r.Body)
 			check_err(err)
 
-			check := create_account(data)
+			check := create_Account(data)
 			fmt.Fprintln(w, check)
 		case "GET":
 			fmt.Println("Get method is not used")

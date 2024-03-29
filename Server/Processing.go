@@ -1,9 +1,8 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
-
+	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -48,38 +47,21 @@ func login(jsonData []byte) string {
 	return string(JsonData)
 }
 
-func create_account(jsonData []byte) string {
+func create_Account(jsonData []byte) string {
 	var Account account
 	err := json.Unmarshal(jsonData, &Account)
 	check_err(err)
-	hashedPassword := encode_data(Account.Email, Account.Password, 2)
+
+	check := create_account(Account.Email, Account.Password)
+	JsonData, err := json.Marshal(check)
+	check_err(err)
 
 	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manager")
 	check_err(err)
-	defer db.Close()
-
-	var id *int
-	err = db.QueryRow("SELECT MAX(id) FROM Account;").Scan(&id)
-	check_err(err)
-
-	newId := 1
-	if id != nil {
-		newId = *id + 1
-	}
-
-	_, err = db.Exec("INSERT INTO Account(id, email, password) VALUES(?, ?, ?)", newId, Account.Email, hashedPassword)
-	check_err(err)
-
+	
 	var Infomation infomation
-
 	_, err = db.Exec("INSERT INTO Informations(id, name, password, fullname, gender, email, createAt, updateAt) VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
 		Infomation.Name, Infomation.Password, Infomation.FullName, Infomation.Gender, Infomation.Email, Infomation.CreateAt, Infomation.UpdateAt)
-
-	check_err(err)
-	defer db.Close()
-
-	check := true
-	JsonData, err := json.Marshal(check)
 	check_err(err)
 
 	return string(JsonData)
