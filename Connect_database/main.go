@@ -143,6 +143,8 @@ func muxtiplexer_router(router *http.ServeMux) {
 	dbInfo, err := Connect()
 	check_err(err)
 	router.HandleFunc("/select", select_Handler(dbInfo))
+	router.HandleFunc("/delete", delete_Handler(dbInfo))
+	router.HandleFunc("/update", update_Handler(dbInfo))
 }
 
 func Create_server() {
