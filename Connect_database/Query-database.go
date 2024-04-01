@@ -189,8 +189,8 @@ func delete_Handler(dbInfo *DBInfo) http.HandlerFunc {
 	}
 }
 
-GRANT SELECT ON employees TO user1;
-REVOKE SELECT ON employees FROM user1;
+//GRANT SELECT ON employees TO user1;"
+//REVOKE SELECT ON employees FROM user1;"
 
 
 func update_Handler(dbInfo *DBInfo) http.HandlerFunc {
