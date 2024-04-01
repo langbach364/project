@@ -32,20 +32,6 @@ type infomation struct {
 	UpdateAt string `json:"updateAt"`
 }
 
-func login(jsonData []byte) string {
-	var Account account
-	err := json.Unmarshal(jsonData, &Account)
-	check_err(err)
-
-	hashPassword := encode_data(Account.Email, Account.Password, 2)
-
-	// check account from database
-	check := check_login(Account.Email, hashPassword)
-	JsonData, err := json.Marshal(check)
-	check_err(err)
-
-	return string(JsonData)
-}
 
 func create_Account(jsonData []byte) string {
 	var Account account

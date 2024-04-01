@@ -1,9 +1,9 @@
 package main
 
 import (
-	"crypto/rand"
+	
 	"database/sql"
-	"encoding/hex"
+	
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"time"
@@ -16,6 +16,12 @@ func check_err(err error) {
 	}
 }
 
+type Account struct {
+	Email    string
+	Password string
+}
+
+
 type List_Account struct {
 	Name     string
 	Password string
@@ -26,36 +32,10 @@ type List_Account struct {
 	UpdateAt time.Time
 }
 
-type Account struct {
-	Email    string
-	Password string
-}
 
-func check_login(email string, Password string) bool {
-	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manager")
-	check_err(err)
-	defer db.Close()
-
-	var storedPassword string
-	err = db.QueryRow("SELECT password FROM Account WHERE email = ?", email).Scan(&storedPassword)
-
-	switch {
-	case err == sql.ErrNoRows:
-		return false
-
-	case err != nil:
-		check_err(err)
-
-	default:
-		if Password != storedPassword {
-			return false
-		}
-	}
-	return true
-}
 
 func check_role(id_user int, id_check int) bool {
-	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manager")
+	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(192.168.108.129)/Manager")
 	check_err(err)
 	defer db.Close()
 
@@ -77,7 +57,7 @@ func create_account(email string, password string) bool {
 
 	hashedPassword := encode_data(Account.Email, Account.Password, 2)
 
-	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manager")
+	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(192.168.108.129)/Manager")
 	check_err(err)
 	defer db.Close()
 
@@ -98,7 +78,7 @@ func create_account(email string, password string) bool {
 }
 
 func get_account(roleID int, start int, limit int) []List_Account {
-	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manage")
+	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(192.168.108.129)/Manage")
 	check_err(err)
 	defer db.Close()
 
@@ -119,17 +99,8 @@ func get_account(roleID int, start int, limit int) []List_Account {
 	return result
 }
 
-func randomToken() string {
-	bytes := make([]byte, 10)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		panic(err)
-	}
-	return hex.EncodeToString(bytes)
-}
-
 func change_infomation(id_user int, info infomation) bool {
-	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manager")
+	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(192.168.108.129)/Manager")
 	check_err(err)
 	defer db.Close()
 
@@ -149,7 +120,7 @@ func update_infomation(id_user int, info infomation) bool {
 }
 
 func delete_account(id_user int, id_delete int) bool {
-	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(localhost)/Manager")
+	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(192.168.108.129)/Manager")
 	check_err(err)
 	defer db.Close()
 
