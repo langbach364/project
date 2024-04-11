@@ -34,6 +34,8 @@ type List_Account struct {
 
 
 
+
+
 func check_role(id_user int, id_check int) bool {
 	db, err := sql.Open("mysql", "root:@ztegc4DF9F4E@tcp(192.168.108.129)/Manager")
 	check_err(err)

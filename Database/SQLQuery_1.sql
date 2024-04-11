@@ -1,9 +1,11 @@
 CREATE DATABASE Manager;
 
+USE Manager
+
 CREATE TABLE Account (
     id INT PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL
+    email VARCHAR(255),
+    password VARCHAR(255)
 );
 
 CREATE TABLE Informations (
@@ -14,50 +16,95 @@ CREATE TABLE Informations (
     email VARCHAR(255),
     CreateAt DATETIME,
     UpdateAt DATETIME,
-    FOREIGN KEY (id) REFERENCES Account(id)
+    FOREIGN KEY (id) REFERENCES Account(id) ON DELETE CASCADE
 );
+
+CREATE TABLE RoleDefinitions (
+    roleID INT PRIMARY KEY, 
+    name_role VARCHAR(255)
+);
+
 
 CREATE TABLE Role (
     id INT PRIMARY KEY,
     fullname VARCHAR(255),
     roleID INT,
-    FOREIGN KEY (id) REFERENCES Account(id)
+    FOREIGN KEY (id) REFERENCES Account(id) ON DELETE CASCADE,
+    FOREIGN KEY (roleID) REFERENCES RoleDefinitions(roleID)
+);
+
+
+CREATE TABLE Token (
+    id INT,
+    tokenID VARCHAR(255) PRIMARY KEY,
+    code VARCHAR(255),
+    FOREIGN KEY (id) REFERENCES Role(id) ON DELETE CASCADE
 );
 
 CREATE TABLE Premissions (
     id INT PRIMARY KEY,
     roleID INT,
-    name_role VARCHAR(255),
     premissions VARCHAR(255),
-    FOREIGN KEY (id) REFERENCES Account(id)
+    FOREIGN KEY (id) REFERENCES Account(id) ON DELETE CASCADE,
+    FOREIGN KEY (roleID) REFERENCES RoleDefinitions(roleID)
 );
 
--- Tạo 2 đối tượng cho bảng Account
-INSERT INTO Account (id, email, password) VALUES (1, 'langbach364@gmail.com', '08009510444991515110151111031111814515979711972111991210897971151101151031199811197114991001044951515452');
-INSERT INTO Account (id, email, password) VALUES (2, 'langbach363@gmail.com', 'password2');
-INSERT INTO Account (id, semail, password) VALUES (3, 'langbach362@gmail.com', 'password3');
+
+-- Chèn vào bảng Account
+INSERT INTO Account(id, email, password)
+VALUES (1, 'example@email.com', 'password123');
+
+-- Chèn vào bảng Informations
+INSERT INTO Informations(id, name, fullname, gender, email, CreateAt, UpdateAt)
+VALUES (1, 'Tên', 'Họ và tên', 'Nam', 'example@email.com', NOW(), NOW());
+
+-- Chèn vào bảng RoleDefinitions
+INSERT INTO RoleDefinitions(roleID, name_role)
+VALUES (1, 'Admin');
+
+-- Chèn vào bảng Role
+INSERT INTO Role(id, fullname, roleID)
+VALUES (1, 'Họ và tên', 1);
+
+-- Chèn vào bảng Token
+INSERT INTO Token(id, tokenID, code)
+VALUES (1, 'token123', 'code123');
+
+-- Chèn vào bảng Premissions
+INSERT INTO Premissions(id, roleID, premissions)
+VALUES (1, 1, 'full_access');
 
 
--- Tạo 2 đối tượng cho bảng Informations
-INSERT INTO Informations (id, name, fullname, gender, email, CreateAt, UpdateAt) VALUES (1, 'Name1', 'Fullname1', 'Gender1', 'email1@example.com', NOW(), NOW());
-INSERT INTO Informations (id, name, fullname, gender, email, CreateAt, UpdateAt) VALUES (2, 'Name2', 'Fullname2', 'Gender2', 'email2@example.com', NOW(), NOW());
-INSERT INTO Informations (id, name, fullname, gender, email, CreateAt, UpdateAt) VALUES (3, 'Name2', 'Fullname2', 'Gender2', 'email2@example.com', NOW(), NOW());
+-- Chèn vào bảng Account
+INSERT INTO Account(id, email, password)
+VALUES (1, 'example@email.com', 'password123');
 
--- Tạo 2 đối tượng cho bảng Role
-INSERT INTO Role (id, fullname, roleID) VALUES (1, 'Fullname1', 1);
-INSERT INTO Role (id, fullname, roleID) VALUES (2, 'Fullname2', 2);
-INSERT INTO Role (id, fullname, roleID) VALUES (3, 'Fullname2', 2);
+-- Chèn vào bảng Informations
+INSERT INTO Informations(id, name, fullname, gender, email, CreateAt, UpdateAt)
+VALUES (1, 'Tên', 'Họ và tên', 'Nam', 'example@email.com', NOW(), NOW());
 
--- Tạo 2 đối tượng cho bảng Premissions
-INSERT INTO Premissions (id, roleID, name_role, premissions) VALUES (1, 1, 'Role1', 'Premission1');
-INSERT INTO Premissions (id, roleID, name_role, premissions) VALUES (2, 2, 'Role2', 'Premission2');
-INSERT INTO Premissions (id, roleID, name_role, premissions) VALUES (3, 2, 'Role2', 'Premission2');
+-- Chèn vào bảng RoleDefinitions
+INSERT INTO RoleDefinitions(roleID, name_role)
+VALUES (1, 'Admin');
 
-SELECT  * from Account
-DROP TABLE IF EXISTS Premissions;
-DROP TABLE IF EXISTS Role;
-DROP TABLE IF EXISTS Informations;
-DROP TABLE IF EXISTS Account;
+-- Chèn vào bảng Role
+INSERT INTO Role(id, fullname, roleID)
+VALUES (1, 'Họ và tên', 1);
 
-SELECT password FROM Account WHERE email = "langbach364@gmail.com"
-delete from Account WHERE id = 1
+-- Chèn vào bảng Token
+INSERT INTO Token(id, tokenID, code)
+VALUES (1, 'token123', 'code123');
+
+-- Chèn vào bảng Premissions
+INSERT INTO Premissions(id, roleID, premissions)
+VALUES (1, 1, 'full_access');
+
+
+
+DELETE FROM Account WHERE id = 1
+SELECT * from Account
+SELECT * from Premissions
+SELECT id FROM Token WHERE code = code1
+
+
+drop DATABASE Manager;

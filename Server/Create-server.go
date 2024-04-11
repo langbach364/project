@@ -25,8 +25,6 @@ func enable_middleware_cors(next http.Handler) http.Handler {
 	})
 }
 
-
-
 func delete_cookie(w http.ResponseWriter) {
 	cookie := http.Cookie{
 		Name:     "session_token",

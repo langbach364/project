@@ -115,7 +115,7 @@ func mixing_rules(merge string, SizeHash int) []int {
 		sum := convert_rune_to_int(rune(merge[i])) + convert_rune_to_int(rune(merge[i+1]))
 
 		if !check_symbol(sum, SizeHash) {
-			convert_symbol(&sum, SizeHash)
+			convert_symbol(&sum, SizeHash - 1)
 		}
 
 		result[i] = sum

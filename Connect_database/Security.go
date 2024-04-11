@@ -94,7 +94,7 @@ func convert_symbol(x *int, size int) int {
 	*x = slice1 + slice2
 
 	if check_length(*x, size) {
-		*x = size - 1
+		*x = size
 	}
 	return *x
 }
@@ -115,7 +115,7 @@ func mixing_rules(merge string, SizeHash int) []int {
 		sum := convert_rune_to_int(rune(merge[i])) + convert_rune_to_int(rune(merge[i+1]))
 
 		if !check_symbol(sum, SizeHash) {
-			convert_symbol(&sum, SizeHash)
+			convert_symbol(&sum, SizeHash - 1)
 		}
 
 		result[i] = sum
@@ -145,6 +145,13 @@ func check_rune_2(data int) bool {
 	return data < 47 || data > 57
 }
 
+func check_size_number(data int) int {
+	if data > 126 {
+		data = 64
+	}
+	return data
+}
+
 func check_number(data *int) int {
 	if check_rune_1(*data) && check_rune_2(*data) {
 		return *data
@@ -152,6 +159,7 @@ func check_number(data *int) int {
 	for *data < 32 || (*data >= 48 && *data <= 57) {
 		*data = *data + 32
 	}
+	*data = check_size_number(*data)
 	return *data
 }
 

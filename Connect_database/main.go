@@ -7,8 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"crypto/rand"
-	"encoding/hex"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/rs/cors"
 )
@@ -21,7 +20,6 @@ type account struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
-
 
 type Account struct {
 	Email    string
@@ -49,44 +47,17 @@ func enable_middleware_cors(next http.Handler) http.Handler {
 	})
 }
 
-func Connect() (*DBInfo, error) {
+func Connect_owner() (*DBInfo, error) {
 	connStr := "root:@ztegc4DF9F4E@tcp(localhost:3306)/Manager"
 	db, err := sql.Open("mysql", connStr)
 	check_err(err)
 	return &DBInfo{DB: db}, nil
 }
 
-func check_string(str interface{}) interface{} {
-	switch v := str.(type) {
-	case []byte:
-		return string(v)
-	case string:
-		return v
-	default:
-		return str
-	}
-}
-
-func randomToken() string {
-	bytes := make([]byte, 10)
-	_, err := rand.Read(bytes)
-	check_err(err)
-	return hex.EncodeToString(bytes)
-}
-
-
-func create_cookie(w http.ResponseWriter) {
-	cookie := http.Cookie{
-		Name:     "session_token",
-		Value:    randomToken(),
-		HttpOnly: true,
-	}
-	http.SetCookie(w, &cookie)
-}
 
 
 func check_login(email string, Password string) bool {
-	db, err := Connect()
+	db, err := Connect_owner()
 	check_err(err)
 	var storedPassword string
 	err = db.DB.QueryRow("SELECT password FROM Account WHERE email = ?", email).Scan(&storedPassword)
@@ -115,7 +86,6 @@ func Router_login(router *http.ServeMux) {
 			check_err(err)
 
 			check := login(data)
-			create_cookie(w)
 			fmt.Fprintln(w, check)
 		case "GET":
 			fmt.Println("Method is not used")
@@ -137,14 +107,16 @@ func login(jsonData []byte) string {
 	return string(JsonData)
 }
 
-
 func muxtiplexer_router(router *http.ServeMux) {
 	Router_login(router)
-	dbInfo, err := Connect()
+	dbInfo_owner, err := Connect_owner()
 	check_err(err)
-	router.HandleFunc("/select", select_Handler(dbInfo))
-	router.HandleFunc("/delete", delete_Handler(dbInfo))
-	router.HandleFunc("/update", update_Handler(dbInfo))
+	router.HandleFunc("/select", select_Handler(dbInfo_owner))
+	router.HandleFunc("/delete", delete_Handler(dbInfo_owner))
+	router.HandleFunc("/insert", insert_Handler(dbInfo_owner))
+	router.HandleFunc("/update", update_Handler(dbInfo_owner))
+	router.HandleFunc("/check_session", session_account())
+	router.HandleFunc("/send_code", send_code())
 }
 
 func Create_server() {

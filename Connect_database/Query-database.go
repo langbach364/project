@@ -2,75 +2,65 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"io"
 	"net/http"
+	"errors"
 )
 
-type table struct {
-	TableName string `json:"table"`
+func validate_And_Create_Token(query query, body []byte) error {
+    if !Structure_query(query.Query, "insert") {
+        return errors.New("query is not allowed")
+    }
+
+    var object object
+    err := json.Unmarshal(body, &object)
+    if err != nil {
+        return err
+    }
+
+    var Info_tokenID Info_tokenID
+    Info_tokenID.ID = object.ID
+    Info_tokenID.Name = object.Name
+
+    var info_code_token Info_code_token
+    info_code_token.Role = object.Role
+    info_code_token.Premission = object.Premission
+
+    tokenID := create_tokenID(Info_tokenID)
+    code_token := create_code_token(info_code_token, tokenID)
+
+    if !check_token(tokenID, code_token) {
+        return errors.New("token is not correct")
+    }
+
+    return nil
 }
 
-type query struct {
-	Query string `json:"query"`
-}
+func insert_Handler(dbInfo *DBInfo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "POST":
+			{
+				body, err := io.ReadAll(r.Body)
+				check_err(err)
 
-type object struct {
-	ID       int    `json:"id"`
-	Password string `json:"password"`
-}
+				var query query
+				err = json.Unmarshal(body, &query)
+				check_err(err)
 
-type infomation struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
-	FullName string `json:"fullname"`
-	Gender   string `json:"gender"`
-	Email    string `json:"email"`
-	CreateAt string `json:"createAt"`
-	UpdateAt string `json:"updateAt"`
-}
+				err = validate_And_Create_Token(query, body)
+                if err != nil {
+                    http.Error(w, err.Error(), http.StatusMethodNotAllowed)
+                    return
+                }
 
-
-func get_Table_Columns(tableName string) []string {
-	db, err := Connect()
-	check_err(err)
-	defer db.DB.Close()
-
-	query := fmt.Sprintf("SELECT * FROM %s LIMIT 0", tableName)
-	rows, err := db.DB.Query(query)
-	check_err(err)
-	defer rows.Close()
-	columns, err := rows.Columns()
-	check_err(err)
-	return columns
-}
-
-func queryNotAllowed() map[string]bool {
-	Attricbute := map[string]bool{
-		"password": true,
-	}
-	return Attricbute
-}
-
-func queryAllowed(tableName string) map[string]bool {
-	columns := get_Table_Columns(tableName)
-	attribute_Allowed := make(map[string]bool)
-	attribute_No_Allowed := queryNotAllowed()
-
-	for _, column := range columns {
-		switch attribute_No_Allowed[column] {
-		case true:
-			attribute_Allowed[column] = false
-		default:
-			attribute_Allowed[column] = true
+				_, err = dbInfo.DB.Exec(query.Query)
+				check_err(err)
+				json.NewEncoder(w).Encode("true")
+			}
 		}
 	}
-	return attribute_Allowed
-}
-
-func check_allowed(attribute_No_Allowed map[string]bool, column string) bool {
-	return !attribute_No_Allowed[column]
 }
 
 func select_Handler(dbInfo *DBInfo) http.HandlerFunc {
@@ -81,81 +71,48 @@ func select_Handler(dbInfo *DBInfo) http.HandlerFunc {
 				body, err := io.ReadAll(r.Body)
 				check_err(err)
 
-				var name table
-				err = json.Unmarshal(body, &name)
-				check_err(err)
-
 				var query query
 				err = json.Unmarshal(body, &query)
 				check_err(err)
 
-				rows, err := dbInfo.DB.Query(string(query.Query))
+				err = validate_And_Create_Token(query, body)
+                if err != nil {
+                    http.Error(w, err.Error(), http.StatusMethodNotAllowed)
+                    return
+                }
+
+				rows, err := dbInfo.DB.Query(query.Query)
 				check_err(err)
 				defer rows.Close()
+
+				var data []map[string]interface{}
 
 				columns, err := rows.Columns()
 				check_err(err)
 
-				Attricbute := queryAllowed(name.TableName)
-				var check_no_allowed bool
-				for _, column := range columns {
-					check_no_allowed = check_allowed(Attricbute, column)
-				}
-
-				if !check_no_allowed {
-					result := make([]map[string]interface{}, 0)
+				for rows.Next() {
 					values := make([]interface{}, len(columns))
-					pointers := make([]interface{}, len(columns))
-
+					valuePtrs := make([]interface{}, len(columns))
 					for i := range values {
-						pointers[i] = &values[i]
+						valuePtrs[i] = &values[i]
 					}
 
-					for rows.Next() {
-						err := rows.Scan(pointers...)
-						check_err(err)
+					err := rows.Scan(valuePtrs...)
+					check_err(err)
 
-						row := make(map[string]interface{})
-						for i, colName := range columns {
-							value := check_string(values[i])
-							row[colName] = value
-						}
-
-						result = append(result, row)
+					row := make(map[string]interface{})
+					for i, column := range columns {
+						row[column] = values[i]
 					}
-					json.NewEncoder(w).Encode(result)
-				} else {
-					json.NewEncoder(w).Encode("Not Allowed")
+
+					data = append(data, row)
 				}
+				json.NewEncoder(w).Encode(data)
 			}
 		default:
 			http.Error(w, "Method is not used", http.StatusMethodNotAllowed)
 		}
 	}
-}
-
-func check_passowrd(id int, password string) bool {
-	db, err := Connect()
-	check_err(err)
-
-	var password_object string
-	err = db.DB.QueryRow("SELECT password FROM Account WHERE id = ?", id).Scan(&password_object)
-	check_err(err)
-
-	db.DB.Close()
-
-	return password_object == password
-}
-
-func get_email(id int) string {
-	db, err := Connect()
-	var email string
-
-	db.DB.QueryRow("SELECT email FROM Account WHERE id = ?", id).Scan(&email)
-	check_err(err)
-	db.DB.Close()
-
-	return email
 }
 
 func delete_Handler(dbInfo *DBInfo) http.HandlerFunc {
@@ -170,28 +127,22 @@ func delete_Handler(dbInfo *DBInfo) http.HandlerFunc {
 				err = json.Unmarshal(body, &query)
 				check_err(err)
 
-				var Object object
-				err = json.Unmarshal(body, &Object)
+				err = validate_And_Create_Token(query, body)
+                if err != nil {
+                    http.Error(w, err.Error(), http.StatusMethodNotAllowed)
+                    return
+                }
+
+				_, err = dbInfo.DB.Exec(query.Query)
 				check_err(err)
 
-				Object.Password = encode_data(get_email(Object.ID), Object.Password, 2)
-
-				if check_passowrd(Object.ID, Object.Password) {
-					dbInfo.DB.Exec("DELETE FROM Account WHERE id = ?", Object.ID)
-					json.NewEncoder(w).Encode("True")
-				} else {
-					json.NewEncoder(w).Encode("Password or Id is not correct")
-				}
+				json.NewEncoder(w).Encode("true")
 			}
 		default:
 			http.Error(w, "Method is not used", http.StatusMethodNotAllowed)
 		}
 	}
 }
-
-//GRANT SELECT ON employees TO user1;"
-//REVOKE SELECT ON employees FROM user1;"
-
 
 func update_Handler(dbInfo *DBInfo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -205,19 +156,61 @@ func update_Handler(dbInfo *DBInfo) http.HandlerFunc {
 				err = json.Unmarshal(body, &query)
 				check_err(err)
 
-				var Object object
-				err = json.Unmarshal(body, &Object)
+				err = validate_And_Create_Token(query, body)
+                if err != nil {
+                    http.Error(w, err.Error(), http.StatusMethodNotAllowed)
+                    return
+                }
+
+				_, err = dbInfo.DB.Exec(query.Query)
 				check_err(err)
 
-				Object.Password = encode_data(get_email(Object.ID), Object.Password, 2)
+				json.NewEncoder(w).Encode("true")
+			}
+		}
+	}
+}
+func send_code() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "POST":
+			{
+				body, err := io.ReadAll(r.Body)
+				check_err(err)
 
-				if check_passowrd(Object.ID, Object.Password) {
-					dbInfo.DB.Exec(string(query.Query), Object.ID, Object.Password)
-					json.NewEncoder(w).Encode("True")
+				var send_token send_email
+				err = json.Unmarshal(body, &send_token)
+				check_err(err)
+
+				Send_Email(send_token.Email_sender, send_token.Password_sender, send_token.Email_recevier)
+				json.NewEncoder(w).Encode("true")
+			}
+		default:
+			http.Error(w, "Method is not used", http.StatusMethodNotAllowed)
+		}
+	}
+}
+
+func session_account() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "POST":
+			{
+				body, err := io.ReadAll(r.Body)
+				check_err(err)
+
+				var code check_code
+				err = json.Unmarshal(body, &code)
+				check_err(err)
+
+				if verify_code(code.Email, code.Code) {
+					json.NewEncoder(w).Encode("true")
 				} else {
-					json.NewEncoder(w).Encode("Password or Id is not correct")
+					json.NewEncoder(w).Encode("false")
 				}
 			}
+		default:
+			http.Error(w, "Method is not used", http.StatusMethodNotAllowed)
 		}
 	}
 }
